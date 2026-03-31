@@ -7,3 +7,116 @@ datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
+
+enum Role {
+  TEACHER
+  STUDENT
+}
+
+enum Level {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum LessonStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  email String @unique
+  password String
+  role Role @default(STUDENT)
+  refreshToken String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teacher Teacher?
+  student Student?
+
+  @@map("users")
+}
+
+model Teacher {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @unique @db.ObjectId
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio String?
+  phone String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  students Student[]
+  lessons Lesson[]
+  notices Notice[]
+}
+
+model Student {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @unique @db.ObjectId
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teacherId String? @db.ObjectId
+  teacher Teacher? @relation(fields: [teacherId], references: [id])
+  phone String?
+  birthDate DateTime?
+  lebel Level @default(BEGINNER)
+  monthlyFree Float?
+  notes String?
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attendances Attendance[]
+
+  @@map("students")
+}
+
+model Lesson {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  teacherId   String       @db.ObjectId
+  teacher     Teacher      @relation(fields: [teacherId], references: [id])
+  title       String
+  description String?
+  scheduledAt DateTime
+  duration    Int          // duração em minutos
+  status      LessonStatus @default(SCHEDULED)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  attendances Attendance[]
+
+  @@map("lessons")
+}
+
+model Attendance {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  lessonId  String   @db.ObjectId
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  studentId String   @db.ObjectId
+  student   Student  @relation(fields: [studentId], references: [id])
+  present   Boolean  @default(false)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([lessonId, studentId])
+  @@map("attendances")
+}
+
+model Notice {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  teacherId  String   @db.ObjectId
+  teacher    Teacher  @relation(fields: [teacherId], references: [id])
+  title      String
+  content    String
+  targetAll  Boolean  @default(true)
+  targetIds  String[] @db.ObjectId // IDs de students específicos (se targetAll = false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("notices")
+}
