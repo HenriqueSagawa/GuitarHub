@@ -4,6 +4,7 @@ export const registerTeacherSchema = z.object({
   name: z.string().min(1, "O nome é obrigatório."),
   email: z.email("O email deve ser válido.").min(1, "O email é obrigatório."),
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres."),
+  bio: z.string().optional(),
   phone: z.string().optional(),
 });
 
