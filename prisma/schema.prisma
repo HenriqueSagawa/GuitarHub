@@ -63,7 +63,7 @@ model Student {
   teacher Teacher? @relation(fields: [teacherId], references: [id])
   phone String?
   birthDate DateTime?
-  lebel Level @default(BEGINNER)
+  level Level @default(BEGINNER)
   monthlyFree Float?
   notes String?
   active Boolean @default(true)
